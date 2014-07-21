@@ -50,13 +50,13 @@ console.log(mark.chain(4).join(' '));
 
 ## MIT Licenced
 
-  [build-png]: https://secure.travis-ci.org/uber/markoff.png
-  [build]: https://travis-ci.org/uber/markoff
-  [cover-png]: https://coveralls.io/repos/uber/markoff/badge.png
-  [cover]: https://coveralls.io/r/uber/markoff
-  [dep-png]: https://david-dm.org/uber/markoff.png
-  [dep]: https://david-dm.org/uber/markoff
-  [test-png]: https://ci.testling.com/uber/markoff.png
-  [tes]: https://ci.testling.com/uber/markoff
+  [build-png]: https://secure.travis-ci.org/jcorbin/markoff.png
+  [build]: https://travis-ci.org/jcorbin/markoff
+  [cover-png]: https://coveralls.io/repos/jcorbin/markoff/badge.png
+  [cover]: https://coveralls.io/r/jcorbin/markoff
+  [dep-png]: https://david-dm.org/jcorbin/markoff.png
+  [dep]: https://david-dm.org/jcorbin/markoff
+  [test-png]: https://ci.testling.com/jcorbin/markoff.png
+  [tes]: https://ci.testling.com/jcorbin/markoff
   [npm-png]: https://nodei.co/npm/markoff.png?stars&downloads
   [npm]: https://nodei.co/npm/markoff

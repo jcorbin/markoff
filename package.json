@@ -4,11 +4,11 @@
   "description": "Markov Chaining",
   "keywords": [],
   "author": "Joshua T Corbin <joshua@wunjo.org>",
-  "repository": "git://github.com/uber/markoff.git",
+  "repository": "git://github.com/jcorbin/markoff.git",
   "main": "index",
-  "homepage": "https://github.com/uber/markoff",
+  "homepage": "https://github.com/jcorbin/markoff",
   "bugs": {
-    "url": "https://github.com/uber/markoff/issues",
+    "url": "https://github.com/jcorbin/markoff/issues",
     "email": "joshua@wunjo.org"
   },
   "dependencies": {},
@@ -25,7 +25,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/uber/markoff/raw/master/LICENSE"
+      "url": "http://github.com/jcorbin/markoff/raw/master/LICENSE"
     }
   ],
   "scripts": {
