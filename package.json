@@ -5,7 +5,7 @@
   "keywords": [],
   "author": "Joshua T Corbin <joshua@wunjo.org>",
   "repository": "git://github.com/jcorbin/markoff.git",
-  "main": "index",
+  "main": "markov",
   "homepage": "https://github.com/jcorbin/markoff",
   "bugs": {
     "url": "https://github.com/jcorbin/markoff/issues",
