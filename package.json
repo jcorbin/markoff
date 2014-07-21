@@ -44,6 +44,6 @@
     "jshint-pre-commit",
     "unit-test"
   ],
-  "private": true,
+  "private": false,
   "playdoh-version": "2.5.0"
 }
