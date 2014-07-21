@@ -15,22 +15,24 @@ Markov Chaining
 ## Example
 
 ```js
-var markoff = require("markoff");
+var Markov = require("markoff");
+var mark = new Markov();
 
-// TODO. Show example
+[
+  "the quick brown fox jumps",
+  "be quick now",
+  "now is the time for all good men"
+].forEach(function(sentence) {
+  mark.addTokens(sentence.split(/\s+/g));
+});
+
+console.log(mark.chain(4).join(' '));
+// might print something like "be quick brown fox" or "the quick now is"
 ```
 
 ## Docs
 
-### `var someValue = markoff(/*arguments*/)`
-
-<!--
-  This is a jsig notation of your interface.
-  https://github.com/Raynos/jsig
--->
-```ocaml
-markoff := (arg: Any) => void
-```
+### `var mark = new Markov(options)`
 
 // TODO. State what the module does.
 

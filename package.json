@@ -11,8 +11,7 @@
     "url": "https://github.com/uber/markoff/issues",
     "email": "joshua@wunjo.org"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "tape": "^2.12.3",
     "jshint": "^2.5.0",
@@ -20,12 +19,15 @@
     "tap-spec": "^0.1.8",
     "pre-commit": "0.0.5",
     "coveralls": "^2.10.0",
-    "opn": "^0.1.2"
+    "opn": "^0.1.2",
+    "xtend": "^3.0.0"
   },
-  "licenses": [{
-    "type": "MIT",
-    "url": "http://github.com/uber/markoff/raw/master/LICENSE"
-  }],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/uber/markoff/raw/master/LICENSE"
+    }
+  ],
   "scripts": {
     "test": "npm run jshint -s && node test/index.js | tap-spec",
     "unit-test": "node test/index.js | tap-spec",
