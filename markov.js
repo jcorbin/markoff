@@ -85,9 +85,14 @@ Markov.prototype.merge = function merge(other) {
             self.counts[token] = other.counts[token];
         }
     });
-    Object.keys(other.transitions).forEach(function(state) {
+    return this.mergeTransitions(other.transitions);
+};
+
+Markov.prototype.mergeTransitions = function merge(transitions) {
+    var self = this;
+    Object.keys(transitions).forEach(function(state) {
         var a = self.transitions.hasOwnProperty(state) && self.transitions[state];
-        var b = other.transitions.hasOwnProperty(state) && other.transitions[state];
+        var b = transitions.hasOwnProperty(state) && transitions[state];
         if (!a) {
             self.transitions[state] = b;
             return;
