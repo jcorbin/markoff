@@ -47,12 +47,24 @@ Markov.prototype.addTransition = function addTransition(state, next) {
     } else {
         trans = this.transitions[state] = [];
     }
+    return this.insortState(trans, next);
+};
 
-    // TODO: insort (binary search insertion)
-    if (trans.indexOf(next) === -1) {
-        trans.push(next);
-        trans.sort();
+Markov.prototype.insortState = function insortState(trans, state) {
+    var lo = 0, hi = trans.length-1;
+    while (lo <= hi) {
+        var q = Math.floor(lo / 2 + hi / 2);
+        if   (this.stateRel(state, trans[q])) hi = q-1;
+        else                                  lo = q+1;
     }
+    if (trans[lo] !== state) {
+        trans.splice(lo, 0, state);
+    }
+    return trans;
+};
+
+Markov.prototype.stateRel = function stateRel(a, b) {
+    return ('' + a) <= ('' + b);
 };
 
 Markov.prototype.addTokens = function addTokens(tokens) {
