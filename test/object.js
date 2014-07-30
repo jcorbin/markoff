@@ -27,7 +27,7 @@ var testObjectProto = {
                 this.assert.deepEqual(
                     this.the[key],
                     this.expected[key],
-                    util.format('expected %s %s', key));
+                    util.format('expected %s %s', mess, key));
             }.bind(this));
         }
     },
