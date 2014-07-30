@@ -95,7 +95,8 @@ Markov.prototype.choose = function choose(state, rand) {
     rand = rand || Math.random;
     var trans = this.transitions[state];
     if (!trans) return null;
-    return trans[Math.floor(rand() * trans.length)];
+    var r = trans[Math.floor(rand() * trans.length)];
+    return r;
 };
 
 Markov.prototype.chain = function chain(maxLength, state, rand) {
