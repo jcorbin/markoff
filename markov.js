@@ -5,7 +5,6 @@ function Markov(options) {
     if (!(this instanceof Markov)) return new Markov(options);
     options = options || {};
     this.stateSize = options.stateSize || 1;
-    this.counts = {};
     this.transitions = {};
     this.start = this.createState();
     this.transitions[this.start] = [];
@@ -24,7 +23,6 @@ Markov.prototype.createState = function() {
 Markov.prototype.save = function() {
     return {
         stateSize: this.stateSize,
-        counts: this.counts,
         transitions: this.transitions,
     };
 };
@@ -35,7 +33,6 @@ Markov.load = function(data) {
 
 Markov.prototype.load = function(data) {
     this.stateSize = data.stateSize;
-    this.counts = data.counts;
     this.transitions = data.transitions;
     return this;
 };
@@ -71,11 +68,6 @@ Markov.prototype.addTokens = function addTokens(tokens) {
     var last = this.createState();
     for (var i=0, n=tokens.length; i<n; i++) {
         var token = tokens[i];
-        if (this.counts.hasOwnProperty(token)) {
-            this.counts[token] += 1;
-        } else {
-            this.counts[token] = 1;
-        }
         this.addTransition(last, token);
         last.shift();
         last.push(token);
@@ -87,14 +79,6 @@ Markov.prototype.merge = function merge(other) {
     if (this.stateSize !== other.stateSize) {
         throw new Error('cannot merge markovs with differing state size');
     }
-    var self = this;
-    Object.keys(other.counts).forEach(function(token) {
-        if (self.counts.hasOwnProperty(token)) {
-            self.counts[token] += other.counts[token];
-        } else {
-            self.counts[token] = other.counts[token];
-        }
-    });
     return this.mergeTransitions(other.transitions);
 };
 

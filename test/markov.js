@@ -8,7 +8,6 @@ var markovTest = createTestObjects.wrapper({
         for (var i=0, n=start.length; i<n; i++) start[i] = null;
         start = String(start);
         var exp = {
-            counts: {},
             transitions: {}
         };
         exp.transitions[start] = [];
@@ -24,13 +23,6 @@ markovTest('Markov addTokens', function(assert) {
         {
             op: ['addTokens', 'this is a testing sentence'.split(' ')],
             expect: {
-                counts: {
-                    this: 1,
-                    is: 1,
-                    a: 1,
-                    testing: 1,
-                    sentence: 1,
-                },
                 transitions: {
                     '': ['this'],
                     this: ['is'],
@@ -44,13 +36,6 @@ markovTest('Markov addTokens', function(assert) {
         {
             op: ['addTokens', 'here is another testing sentence'.split(' ')],
             expect: {
-                counts: {
-                    here: 1,
-                    is: 2,
-                    another: 1,
-                    testing: 2,
-                    sentence: 2,
-                },
                 transitions: {
                     '': ['here', 'this'],
                     here: ['is'],
@@ -68,13 +53,6 @@ markovTest('Markov special keywords', function(assert) {
     assert.markov.okStep({
         op: ['addTokens', 'the token constructor is special'.split(' ')],
         expect: {
-            counts: {
-                the: 1,
-                token: 1,
-                constructor: 1,
-                is: 1,
-                special: 1
-            },
             transitions: {
                 '': ['the'],
                 the: ['token'],
@@ -96,14 +74,6 @@ markovTest('Markov save/load', function(assert) {
             markov.addTokens('c e g'.split(' '));
         },
         expect: {
-            counts: {
-                a: 2,
-                b: 2,
-                c: 2,
-                d: 1,
-                e: 1,
-                g: 1,
-            },
             transitions: {
                 '': ['a', 'c'],
                 a: ['b'],
@@ -118,11 +88,9 @@ markovTest('Markov save/load', function(assert) {
     var data = assert.markov.the.save();
     assert.deepEqual(data, {
         stateSize: 1,
-        counts: assert.markov.expected.counts,
         transitions: assert.markov.expected.transitions
     }, 'saved data matches');
     var copy = Markov.load(data);
-    assert.deepEqual(copy.counts, assert.markov.expected.counts, 'loaded counts');
     assert.deepEqual(copy.transitions, assert.markov.expected.transitions, 'loaded transitions');
     assert.end();
 });
@@ -203,13 +171,6 @@ markovTest('Markov merge', {
     assert.markova.okStep({
         op: ['addTokens', ['this', 'is', 'a', 'testing', 'sentence']],
         expect: {
-            counts: {
-                this: 1,
-                is: 1,
-                a: 1,
-                testing: 1,
-                sentence: 1,
-            },
             transitions: {
                 '': ['this'],
                 this: ['is'],
@@ -223,13 +184,6 @@ markovTest('Markov merge', {
     assert.markovb.okStep({
         op: ['addTokens', ['here', 'is', 'another', 'testing', 'sentence']],
         expect: {
-            counts: {
-                here: 1,
-                is: 1,
-                another: 1,
-                testing: 1,
-                sentence: 1,
-            },
             transitions: {
                 '': ['here'],
                 here: ['is'],
@@ -242,15 +196,6 @@ markovTest('Markov merge', {
     });
     assert.markova.the.merge(assert.markovb.the);
     assert.markova.okState('after markova.merge(markovb)', {
-        counts: {
-            this: 1,
-            here: 1,
-            is: 2,
-            a: 1,
-            another: 1,
-            testing: 2,
-            sentence: 2,
-        },
         transitions: {
             '': ['here', 'this'],
             this: ['is'],
@@ -277,14 +222,6 @@ markovTest('Build a 2-markov', {
         {
             op: ['addTokens', 'now is the time for action'.split(' ')],
             expect: {
-                counts: {
-                    now: 1,
-                    is: 1,
-                    the: 1,
-                    time: 1,
-                    for: 1,
-                    action: 1
-                },
                 transitions: {
                     ',': ['now'],
                     ',now': ['is'],
@@ -300,14 +237,6 @@ markovTest('Build a 2-markov', {
         {
             op: ['addTokens', 'tomorrow is the time for sleep'.split(' ')],
             expect: {
-                counts: {
-                    tomorrow: 1,
-                    is: 2,
-                    the: 2,
-                    time: 2,
-                    for: 2,
-                    sleep: 1
-                },
                 transitions: {
                     ',': ['now', 'tomorrow'],
                     ',tomorrow': ['is'],
