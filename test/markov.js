@@ -24,12 +24,12 @@ markovTest('Markov addTokens', function(assert) {
             op: ['addTokens', 'this is a testing sentence'.split(' ')],
             expect: {
                 transitions: {
-                    '': ['this'],
-                    this: ['is'],
-                    is: ['a'],
-                    a: ['testing'],
-                    testing: ['sentence'],
-                    sentence: [null],
+                    '': [[1, 'this']],
+                    this: [[1, 'is']],
+                    is: [[1, 'a']],
+                    a: [[1, 'testing']],
+                    testing: [[1, 'sentence']],
+                    sentence: [[1, null]],
                 }
             }
         },
@@ -37,11 +37,12 @@ markovTest('Markov addTokens', function(assert) {
             op: ['addTokens', 'here is another testing sentence'.split(' ')],
             expect: {
                 transitions: {
-                    '': ['here', 'this'],
-                    here: ['is'],
-                    is: ['a', 'another'],
-                    another: ['testing'],
-                    testing: ['sentence'],
+                    '': [[1, 'here'], [1, 'this']],
+                    here: [[1, 'is']],
+                    is: [[1, 'a'], [1, 'another']],
+                    another: [[1, 'testing']],
+                    testing: [[2, 'sentence']],
+                    sentence: [[2, null]],
                 }
             }
         }
@@ -54,12 +55,12 @@ markovTest('Markov special keywords', function(assert) {
         op: ['addTokens', 'the token constructor is special'.split(' ')],
         expect: {
             transitions: {
-                '': ['the'],
-                the: ['token'],
-                token: ['constructor'],
-                constructor: ['is'],
-                is: ['special'],
-                special: [null]
+                '': [[1, 'the']],
+                the: [[1, 'token']],
+                token: [[1, 'constructor']],
+                constructor: [[1, 'is']],
+                is: [[1, 'special']],
+                special: [[1, null]]
             }
         },
     });
@@ -75,13 +76,13 @@ markovTest('Markov save/load', function(assert) {
         },
         expect: {
             transitions: {
-                '': ['a', 'c'],
-                a: ['b'],
-                b: ['c', 'd'],
-                c: ['e', null],
-                d: [null],
-                e: ['g'],
-                g: [null],
+                '': [[2, 'a'], [1, 'c']],
+                a: [[2, 'b']],
+                b: [[1, 'c'], [1, 'd']],
+                c: [[1, 'e'], [1, null]],
+                d: [[1, null]],
+                e: [[1, 'g']],
+                g: [[1, null]],
             }
         }
     });
@@ -172,12 +173,12 @@ markovTest('Markov merge', {
         op: ['addTokens', ['this', 'is', 'a', 'testing', 'sentence']],
         expect: {
             transitions: {
-                '': ['this'],
-                this: ['is'],
-                is: ['a'],
-                a: ['testing'],
-                testing: ['sentence'],
-                sentence: [null],
+                '': [[1, 'this']],
+                this: [[1, 'is']],
+                is: [[1, 'a']],
+                a: [[1, 'testing']],
+                testing: [[1, 'sentence']],
+                sentence: [[1, null]],
             }
         }
     });
@@ -185,26 +186,26 @@ markovTest('Markov merge', {
         op: ['addTokens', ['here', 'is', 'another', 'testing', 'sentence']],
         expect: {
             transitions: {
-                '': ['here'],
-                here: ['is'],
-                is: ['another'],
-                another: ['testing'],
-                testing: ['sentence'],
-                sentence: [null],
+                '': [[1, 'here']],
+                here: [[1, 'is']],
+                is: [[1, 'another']],
+                another: [[1, 'testing']],
+                testing: [[1, 'sentence']],
+                sentence: [[1, null]],
             }
         }
     });
     assert.markova.the.merge(assert.markovb.the);
     assert.markova.okState('after markova.merge(markovb)', {
         transitions: {
-            '': ['here', 'this'],
-            this: ['is'],
-            here: ['is'],
-            is: ['a', 'another'],
-            a: ['testing'],
-            another: ['testing'],
-            testing: ['sentence'],
-            sentence: [null],
+            '': [[1, 'here'], [1, 'this']],
+            this: [[1, 'is']],
+            here: [[1, 'is']],
+            is: [[1, 'a'], [1, 'another']],
+            a: [[1, 'testing']],
+            another: [[1, 'testing']],
+            testing: [[2, 'sentence']],
+            sentence: [[2, null]],
         }
     });
     assert.throws(function() {
@@ -223,13 +224,13 @@ markovTest('Build a 2-markov', {
             op: ['addTokens', 'now is the time for action'.split(' ')],
             expect: {
                 transitions: {
-                    ',': ['now'],
-                    ',now': ['is'],
-                    'now,is': ['the'],
-                    'is,the': ['time'],
-                    'the,time': ['for'],
-                    'time,for': ['action'],
-                    'for,action': [null]
+                    ',': [[1, 'now']],
+                    ',now': [[1, 'is']],
+                    'now,is': [[1, 'the']],
+                    'is,the': [[1, 'time']],
+                    'the,time': [[1, 'for']],
+                    'time,for': [[1, 'action']],
+                    'for,action': [[1, null]]
                 }
             }
         },
@@ -238,11 +239,13 @@ markovTest('Build a 2-markov', {
             op: ['addTokens', 'tomorrow is the time for sleep'.split(' ')],
             expect: {
                 transitions: {
-                    ',': ['now', 'tomorrow'],
-                    ',tomorrow': ['is'],
-                    'tomorrow,is': ['the'],
-                    'time,for': ['action', 'sleep'],
-                    'for,sleep': [null]
+                    ',': [[1, 'now'], [1, 'tomorrow']],
+                    ',tomorrow': [[1, 'is']],
+                    'tomorrow,is': [[1, 'the']],
+                    'is,the': [[2, 'time']],
+                    'the,time': [[2, 'for']],
+                    'time,for': [[1, 'action'], [1, 'sleep']],
+                    'for,sleep': [[1, null]]
                 }
             }
         }

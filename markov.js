@@ -38,23 +38,29 @@ Markov.prototype.load = function(data) {
 };
 
 Markov.prototype.addTransition = function addTransition(state, next) {
+    return this.addWeightedTransition(state, 1, next);
+};
+
+Markov.prototype.addWeightedTransition = function addWeightedTransition(state, w, next) {
     if (this.transitions.hasOwnProperty(state)) {
-        return this.insortState(this.transitions[state], next);
+        return this.insortState(this.transitions[state], w, next);
     } else {
-        this.transitions[state] = [next];
+        this.transitions[state] = [[w, next]];
         return this.transitions[state];
     }
 };
 
-Markov.prototype.insortState = function insortState(trans, state) {
+Markov.prototype.insortState = function insortState(trans, w, state) {
     var lo = 0, hi = trans.length-1;
     while (lo <= hi) {
         var q = Math.floor(lo / 2 + hi / 2);
-        if   (this.stateRel(state, trans[q])) hi = q-1;
-        else                                  lo = q+1;
+        if   (this.stateRel(state, trans[q][1])) hi = q-1;
+        else                                     lo = q+1;
     }
-    if (trans[lo] !== state) {
-        trans.splice(lo, 0, state);
+    if (trans[lo] && trans[lo][1] === state) {
+        trans[lo][0] += w;
+    } else {
+        trans.splice(lo, 0, [w, state]);
     }
     return trans;
 };
@@ -85,7 +91,7 @@ Markov.prototype.mergeTransitions = function merge(transitions) {
     var self = this;
     Object.keys(transitions).forEach(function(state) {
         transitions[state].forEach(function(next) {
-            self.addTransition(state, next);
+            self.addWeightedTransition(state, next[0], next[1]);
         });
     });
     return self;
@@ -95,7 +101,15 @@ Markov.prototype.choose = function choose(state, rand) {
     rand = rand || Math.random;
     var trans = this.transitions[state];
     if (!trans) return null;
-    var r = trans[Math.floor(rand() * trans.length)];
+    var r = trans[0][1];
+    var bestK = Math.pow(rand(), 1/trans[0][0]);
+    for (var i=1, n=trans.length; i<n; i++) {
+        var k = Math.pow(rand(), 1/trans[i][0]);
+        if (k > bestK) {
+            bestK = k;
+            r = trans[i][1];
+        }
+    }
     return r;
 };
 
