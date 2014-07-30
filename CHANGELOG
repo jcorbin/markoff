@@ -1,3 +1,16 @@
+2014-07-29 - 2.0.0 (d19e95c)
+d19e95c (HEAD, master) Switch to weighted transitions
+38ceb05 Trivial refactor
+6740b83 Trivial improvement
+4b8230a Drop counts
+54e0e80 Use binary insortion
+6b99233 Simplify mergeTransitions
+fefb546 Drop vim license test
+2d42662 Fix format glitch in test/object
+107f808 Factor out mergeTransitions
+b04e955 (tag: v1.0.4) 1.0.4
+
+
 2014-07-20 - 1.0.4 (0c35882)
 0c35882 (HEAD, master) Fix main
 27be26b (tag: v1.0.3, origin/master) 1.0.3
