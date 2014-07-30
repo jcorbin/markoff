@@ -38,13 +38,12 @@ Markov.prototype.load = function(data) {
 };
 
 Markov.prototype.addTransition = function addTransition(state, next) {
-    var trans;
     if (this.transitions.hasOwnProperty(state)) {
-        trans = this.transitions[state];
+        return this.insortState(this.transitions[state], next);
     } else {
-        trans = this.transitions[state] = [];
+        this.transitions[state] = [next];
+        return this.transitions[state];
     }
-    return this.insortState(trans, next);
 };
 
 Markov.prototype.insortState = function insortState(trans, state) {
