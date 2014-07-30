@@ -1,5 +1,3 @@
-var sortMergeInto = require('./sortMerge').into;
-
 // TODO: support more than single token window
 // TODO: transition frequencies
 
@@ -91,14 +89,9 @@ Markov.prototype.merge = function merge(other) {
 Markov.prototype.mergeTransitions = function merge(transitions) {
     var self = this;
     Object.keys(transitions).forEach(function(state) {
-        var a = self.transitions.hasOwnProperty(state) && self.transitions[state];
-        var b = transitions.hasOwnProperty(state) && transitions[state];
-        if (!a) {
-            self.transitions[state] = b;
-            return;
-        }
-        // self.transitions[state] = sortMerge(a, b);
-        sortMergeInto(a, b);
+        transitions[state].forEach(function(next) {
+            self.addTransition(state, next);
+        });
     });
     return self;
 };
