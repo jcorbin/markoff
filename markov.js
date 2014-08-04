@@ -12,6 +12,14 @@ Markov.prototype.tokenRel = function tokenRel(a, b) {
     return ('' + a) < ('' + b);
 };
 
+Markov.prototype.copyWToken = function(wToken) {
+    return [wToken[0], this.copyToken(wToken[1])];
+};
+
+Markov.prototype.copyToken = function(token) {
+    return token;
+};
+
 Markov.prototype.key = function(token) {
     return token;
 };
@@ -76,29 +84,25 @@ Markov.prototype.inSort = function inSort(wTokens, w, token) {
             return wTokens;
         }
     }
-    wTokens.splice(lo, 0, [w, token]);
+    wTokens.splice(lo, 0, [w, this.copyToken(token)]);
     return wTokens;
 };
 
 Markov.prototype.inSortMerge = function inSortMerge(wTokens, otherWTokens) {
-    function copy(wToken) {
-        // TODO: is this sufficient or should we use deepcopy?
-        return [wToken[0], wToken[1]];
-    }
     var i = 0, n = wTokens.length;
     var j = 0, m = otherWTokens.length;
     while (i < n && j < m) {
         if (this.tokenRel(wTokens[i][1], otherWTokens[j][1])) {
             i++;
         } else if (this.tokenRel(otherWTokens[j][1], wTokens[i][1])) {
-            wTokens.splice(i++, 0, copy(otherWTokens[j++]));
+            wTokens.splice(i++, 0, this.copyWToken(otherWTokens[j++]));
             n++;
         } else {
             wTokens[i++][0] += otherWTokens[j++][0];
         }
     }
     while (j < m) {
-        wTokens.push(copy(otherWTokens[j++]));
+        wTokens.push(this.copyWToken(otherWTokens[j++]));
     }
 };
 
