@@ -8,6 +8,10 @@ function Markov(options) {
     if (options.key) this.key = options.key;
 }
 
+Markov.prototype.tokenRel = function tokenRel(a, b) {
+    return ('' + a) <= ('' + b);
+};
+
 Markov.prototype.key = function(token) {
     return token;
 };
@@ -72,10 +76,6 @@ Markov.prototype.inSort = function inSort(wTokens, w, token) {
         wTokens.splice(lo, 0, [w, token]);
     }
     return wTokens;
-};
-
-Markov.prototype.tokenRel = function tokenRel(a, b) {
-    return ('' + a) <= ('' + b);
 };
 
 Markov.prototype.addTokens = function addTokens(tokens) {
