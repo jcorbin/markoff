@@ -129,16 +129,21 @@ Markov.prototype.choose = function choose(state, rand) {
 Markov.prototype.chain = function chain(maxLength, state, rand) {
     maxLength = maxLength || Infinity;
     rand = rand || Math.random;
-    state = state || this.createState();
     var result = [];
-    while (result.length < maxLength) {
-        var token = this.choose(state, rand);
-        if (token === null) break;
-        result.push(token);
-        state.shift();
-        state.push(this.key(token));
+    var self = this;
+    return step(state || this.createState());
+    function step(state) {
+        var token = self.choose(state, rand);
+        if (token !== null) {
+            result.push(token);
+            if (result.length < maxLength) {
+                state.shift();
+                state.push(self.key(token));
+                return step(state);
+            }
+        }
+        return result;
     }
-    return result;
 };
 
 Markov.prototype.generatePhrase = function(n, minLength) {
