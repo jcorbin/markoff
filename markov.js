@@ -172,29 +172,4 @@ Markov.prototype.chain = function chain(maxLength, state, rand) {
     }
 };
 
-Markov.makeMap = function(data) {
-    var map = {};
-    if (data.transitions) {
-        var markov = Markov.load(data);
-        map[markov.stateSize] = markov;
-    } else {
-        Object.keys(data).forEach(function(key) {
-            map[key] = Markov.load(data[key]);
-        });
-    }
-    map.get = function getMarkov(k) {
-        if (this[k]) return this[k];
-        var best = null;
-        Object.keys(this).forEach(function(key) {
-            var markov = this[key];
-            if (!best ||
-                (markov.stateSize <= k && markov.stateSize > best.stateSize)
-            ) best = markov;
-        });
-        if (best) this[k] = best;
-        return best;
-    };
-    return map;
-};
-
 module.exports = Markov;
