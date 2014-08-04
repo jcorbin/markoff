@@ -1,6 +1,3 @@
-// TODO: support more than single token window
-// TODO: transition frequencies
-
 function Markov(options) {
     if (!(this instanceof Markov)) return new Markov(options);
     options = options || {};
