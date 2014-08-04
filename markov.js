@@ -39,35 +39,35 @@ Markov.prototype.load = function(data) {
     return this;
 };
 
-Markov.prototype.addTransition = function addTransition(state, next) {
-    return this.addWeightedTransition(state, 1, next);
+Markov.prototype.addTransition = function addTransition(state, token) {
+    return this.addWeightedTransition(state, 1, token);
 };
 
-Markov.prototype.addWeightedTransition = function addWeightedTransition(state, w, next) {
+Markov.prototype.addWeightedTransition = function addWeightedTransition(state, w, token) {
     if (this.transitions.hasOwnProperty(state)) {
-        return this.insortState(this.transitions[state], w, next);
+        return this.inSort(this.transitions[state], w, token);
     } else {
-        this.transitions[state] = [[w, next]];
+        this.transitions[state] = [[w, token]];
         return this.transitions[state];
     }
 };
 
-Markov.prototype.insortState = function insortState(trans, w, state) {
-    var lo = 0, hi = trans.length-1;
+Markov.prototype.inSort = function inSort(wTokens, w, token) {
+    var lo = 0, hi = wTokens.length-1;
     while (lo <= hi) {
         var q = Math.floor(lo / 2 + hi / 2);
-        if   (this.stateRel(state, trans[q][1])) hi = q-1;
-        else                                     lo = q+1;
+        if   (this.tokenRel(token, wTokens[q][1])) hi = q-1;
+        else                                       lo = q+1;
     }
-    if (trans[lo] && trans[lo][1] === state) {
-        trans[lo][0] += w;
+    if (wTokens[lo] && wTokens[lo][1] === token) {
+        wTokens[lo][0] += w;
     } else {
-        trans.splice(lo, 0, [w, state]);
+        wTokens.splice(lo, 0, [w, token]);
     }
-    return trans;
+    return wTokens;
 };
 
-Markov.prototype.stateRel = function stateRel(a, b) {
+Markov.prototype.tokenRel = function tokenRel(a, b) {
     return ('' + a) <= ('' + b);
 };
 
@@ -92,8 +92,8 @@ Markov.prototype.merge = function merge(other) {
 Markov.prototype.mergeTransitions = function merge(transitions) {
     var self = this;
     Object.keys(transitions).forEach(function(state) {
-        transitions[state].forEach(function(next) {
-            self.addWeightedTransition(state, next[0], next[1]);
+        transitions[state].forEach(function(wToken) {
+            self.addWeightedTransition(state, wToken[0], wToken[1]);
         });
     });
     return self;
@@ -101,15 +101,15 @@ Markov.prototype.mergeTransitions = function merge(transitions) {
 
 Markov.prototype.choose = function choose(state, rand) {
     rand = rand || Math.random;
-    var trans = this.transitions[state];
-    if (!trans) return null;
-    var r = trans[0][1];
-    var bestK = Math.pow(rand(), 1/trans[0][0]);
-    for (var i=1, n=trans.length; i<n; i++) {
-        var k = Math.pow(rand(), 1/trans[i][0]);
+    var wTokens = this.transitions[state];
+    if (!wTokens) return null;
+    var r = wTokens[0][1];
+    var bestK = Math.pow(rand(), 1/wTokens[0][0]);
+    for (var i=1, n=wTokens.length; i<n; i++) {
+        var k = Math.pow(rand(), 1/wTokens[i][0]);
         if (k > bestK) {
             bestK = k;
-            r = trans[i][1];
+            r = wTokens[i][1];
         }
     }
     return r;
