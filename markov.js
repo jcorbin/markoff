@@ -9,7 +9,7 @@ function Markov(options) {
 }
 
 Markov.prototype.tokenRel = function tokenRel(a, b) {
-    return ('' + a) <= ('' + b);
+    return ('' + a) < ('' + b);
 };
 
 Markov.prototype.key = function(token) {
@@ -67,14 +67,14 @@ Markov.prototype.inSort = function inSort(wTokens, w, token) {
     var lo = 0, hi = wTokens.length-1;
     while (lo <= hi) {
         var q = Math.floor(lo / 2 + hi / 2);
-        if   (this.tokenRel(token, wTokens[q][1])) hi = q-1;
-        else                                       lo = q+1;
+        if      (this.tokenRel(token, wTokens[q][1])) hi = q-1;
+        else if (this.tokenRel(wTokens[q][1], token)) lo = q+1;
+        else {
+            wTokens[q][0] += w;
+            return wTokens;
+        }
     }
-    if (wTokens[lo] && wTokens[lo][1] === token) {
-        wTokens[lo][0] += w;
-    } else {
-        wTokens.splice(lo, 0, [w, token]);
-    }
+    wTokens.splice(lo, 0, [w, token]);
     return wTokens;
 };
 
