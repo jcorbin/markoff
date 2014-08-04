@@ -172,14 +172,6 @@ Markov.prototype.chain = function chain(maxLength, state, rand) {
     }
 };
 
-Markov.prototype.generatePhrase = function(n, minLength) {
-    var phrase = '';
-    while (phrase.length < minLength) {
-        phrase = this.chain(n).join(' ');
-    }
-    return phrase;
-};
-
 Markov.makeMap = function(data) {
     var map = {};
     if (data.transitions) {
@@ -201,12 +193,6 @@ Markov.makeMap = function(data) {
         });
         if (best) this[k] = best;
         return best;
-    };
-    map.generatePhrase = function(n, minLength) {
-        var markov = this.get(n);
-        if (!markov) throw new Error('no markov available for ' + n + '-phrases');
-        var phrase = markov.generatePhrase(n, minLength);
-        return phrase;
     };
     return map;
 };
