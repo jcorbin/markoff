@@ -27,8 +27,8 @@ Markov.prototype.save = function() {
     };
 };
 
-Markov.load = function(data) {
-    return (new Markov()).load(data);
+Markov.load = function(data, options) {
+    return (new Markov(options)).load(data);
 };
 
 Markov.prototype.load = function(data) {
