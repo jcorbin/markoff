@@ -1,3 +1,8 @@
+2014-08-03 - 2.1.0 (42b3d6c)
+42b3d6c (HEAD, master) Add key support
+f6fc191 (tag: v2.0.1, origin/master) 2.0.1
+
+
 2014-08-03 - 2.0.1 (79806b4)
 79806b4 (HEAD, master) Pass options through class load
 ec49dd9 (tag: v2.0.0, origin/master) 2.0.0
