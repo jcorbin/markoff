@@ -1,3 +1,8 @@
+2014-08-03 - 2.0.1 (79806b4)
+79806b4 (HEAD, master) Pass options through class load
+ec49dd9 (tag: v2.0.0, origin/master) 2.0.0
+
+
 2014-07-29 - 2.0.0 (d19e95c)
 d19e95c (HEAD, master) Switch to weighted transitions
 38ceb05 Trivial refactor
