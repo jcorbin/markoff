@@ -8,7 +8,12 @@ function Markov(options) {
     this.transitions = {};
     this.start = this.createState();
     this.transitions[this.start] = [];
+    if (options.key) this.key = options.key;
 }
+
+Markov.prototype.key = function(token) {
+    return token;
+};
 
 Markov.prototype.createState = function() {
     var n = this.stateSize;
@@ -75,7 +80,7 @@ Markov.prototype.addTokens = function addTokens(tokens) {
         var token = tokens[i];
         this.addTransition(last, token);
         last.shift();
-        last.push(token);
+        last.push(this.key(token));
     }
     if (n > 0) this.addTransition(last, null);
 };
@@ -123,7 +128,7 @@ Markov.prototype.chain = function chain(maxLength, state, rand) {
         if (token === null) break;
         result.push(token);
         state.shift();
-        state.push(token);
+        state.push(this.key(token));
     }
     return result;
 };
