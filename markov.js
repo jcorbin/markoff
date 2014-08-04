@@ -127,13 +127,9 @@ Markov.prototype.merge = function merge(other) {
     if (this.stateSize !== other.stateSize) {
         throw new Error('cannot merge markovs with differing state size');
     }
-    return this.mergeTransitions(other.transitions);
-};
-
-Markov.prototype.mergeTransitions = function merge(transitions) {
     var self = this;
-    Object.keys(transitions).forEach(function(state) {
-        self.addWeightedTransitions(state, transitions[state]);
+    Object.keys(other.transitions).forEach(function(state) {
+        self.addWeightedTransitions(state, other.transitions[state]);
     });
     return self;
 };
