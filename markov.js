@@ -52,6 +52,13 @@ Markov.prototype.addWeightedTransition = function addWeightedTransition(state, w
     }
 };
 
+Markov.prototype.addWeightedTransitions = function addWeightedTransitions(state, newWTokens) {
+    var self = this;
+    newWTokens.forEach(function(wToken) {
+        self.addWeightedTransition(state, wToken[0], wToken[1]);
+    });
+};
+
 Markov.prototype.inSort = function inSort(wTokens, w, token) {
     var lo = 0, hi = wTokens.length-1;
     while (lo <= hi) {
@@ -92,9 +99,7 @@ Markov.prototype.merge = function merge(other) {
 Markov.prototype.mergeTransitions = function merge(transitions) {
     var self = this;
     Object.keys(transitions).forEach(function(state) {
-        transitions[state].forEach(function(wToken) {
-            self.addWeightedTransition(state, wToken[0], wToken[1]);
-        });
+        self.addWeightedTransitions(state, transitions[state]);
     });
     return self;
 };
