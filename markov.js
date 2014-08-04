@@ -113,14 +113,16 @@ Markov.prototype.mergeTransitions = function merge(transitions) {
 Markov.prototype.choose = function choose(state, rand) {
     rand = rand || Math.random;
     var wTokens = this.transitions[state];
-    if (!wTokens) return null;
-    var r = wTokens[0][1];
-    var bestK = Math.pow(rand(), 1/wTokens[0][0]);
-    for (var i=1, n=wTokens.length; i<n; i++) {
-        var k = Math.pow(rand(), 1/wTokens[i][0]);
-        if (k > bestK) {
-            bestK = k;
-            r = wTokens[i][1];
+    var r = null;
+    if (wTokens) {
+        r = wTokens[0][1];
+        var bestK = Math.pow(rand(), 1/wTokens[0][0]);
+        for (var i=1, n=wTokens.length; i<n; i++) {
+            var k = Math.pow(rand(), 1/wTokens[i][0]);
+            if (k > bestK) {
+                bestK = k;
+                r = wTokens[i][1];
+            }
         }
     }
     return r;
