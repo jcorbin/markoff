@@ -79,14 +79,20 @@ Markov.prototype.tokenRel = function tokenRel(a, b) {
 };
 
 Markov.prototype.addTokens = function addTokens(tokens) {
-    var last = this.createState();
-    for (var i=0, n=tokens.length; i<n; i++) {
+    var self = this;
+    step(this.createState(), 0);
+    function step(last, i) {
         var token = tokens[i];
-        this.addTransition(last, token);
+        if (token === undefined) {
+            if (i === 0) return;
+            token = null;
+        }
+        self.addTransition(last, token);
         last.shift();
-        last.push(this.key(token));
+        last.push(self.key(token));
+        if (i >= tokens.length) return;
+        step(last, i+1);
     }
-    if (n > 0) this.addTransition(last, null);
 };
 
 Markov.prototype.merge = function merge(other) {
