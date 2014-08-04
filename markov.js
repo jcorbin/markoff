@@ -57,10 +57,12 @@ Markov.prototype.addWeightedTransition = function addWeightedTransition(state, w
 };
 
 Markov.prototype.addWeightedTransitions = function addWeightedTransitions(state, newWTokens) {
-    var self = this;
-    newWTokens.forEach(function(wToken) {
-        self.addWeightedTransition(state, wToken[0], wToken[1]);
-    });
+    if (this.transitions.hasOwnProperty(state)) {
+        return this.inSortMerge(this.transitions[state], newWTokens);
+    } else {
+        this.transitions[state] = newWTokens;
+        return this.transitions[state];
+    }
 };
 
 Markov.prototype.inSort = function inSort(wTokens, w, token) {
@@ -76,6 +78,28 @@ Markov.prototype.inSort = function inSort(wTokens, w, token) {
     }
     wTokens.splice(lo, 0, [w, token]);
     return wTokens;
+};
+
+Markov.prototype.inSortMerge = function inSortMerge(wTokens, otherWTokens) {
+    function copy(wToken) {
+        // TODO: is this sufficient or should we use deepcopy?
+        return [wToken[0], wToken[1]];
+    }
+    var i = 0, n = wTokens.length;
+    var j = 0, m = otherWTokens.length;
+    while (i < n && j < m) {
+        if (this.tokenRel(wTokens[i][1], otherWTokens[j][1])) {
+            i++;
+        } else if (this.tokenRel(otherWTokens[j][1], wTokens[i][1])) {
+            wTokens.splice(i++, 0, copy(otherWTokens[j++]));
+            n++;
+        } else {
+            wTokens[i++][0] += otherWTokens[j++][0];
+        }
+    }
+    while (j < m) {
+        wTokens.push(copy(otherWTokens[j++]));
+    }
 };
 
 Markov.prototype.addTokens = function addTokens(tokens) {
