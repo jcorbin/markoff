@@ -15,7 +15,28 @@ function testObjectHarness(defaultSpec, defaultNames) {
             namedSpecs = namesToSpec(defaultSpec, names);
         }
         test(desc, function(assert) {
-            createTestObjects(assert, namedSpecs);
+            Object.keys(namedSpecs).forEach(function(name) {
+                var ctx = assert[name] = extend(Object.create(testObjectProto), {
+                    assert: assert,
+                    name: name,
+                });
+                var spec = namedSpecs[name];
+                if (spec.create) {
+                    ctx.the = spec.create();
+                } else if (spec.args) {
+                    ctx.the = spec.type.apply(null, spec.args);
+                } else {
+                    ctx.the = new spec.type();
+                }
+                if (typeof spec.expected === 'function') {
+                    ctx.expected = spec.expected();
+                } else if (spec.expected) {
+                    ctx.expected = copy(spec.expected);
+                } else {
+                    ctx.expected = {};
+                }
+                ctx.okState(util.format('inital %s object: %s', spec.type.name, name));
+            });
             func(assert);
         });
     };
@@ -38,7 +59,6 @@ function namesToSpec(defaultSpec, names) {
     }
     return namedSpecs;
 }
-
 
 var testObjectProto = {
     okState: function assertState(mess, expect) {
@@ -70,31 +90,6 @@ var testObjectProto = {
         steps.forEach(this.okStep, this);
     }
 };
-
-function createTestObjects(assert, namedSpecs) {
-    Object.keys(namedSpecs).forEach(function(name) {
-        var ctx = assert[name] = extend(Object.create(testObjectProto), {
-            assert: assert,
-            name: name,
-        });
-        var spec = namedSpecs[name];
-        if (spec.create) {
-            ctx.the = spec.create();
-        } else if (spec.args) {
-            ctx.the = spec.type.apply(null, spec.args);
-        } else {
-            ctx.the = new spec.type();
-        }
-        if (typeof spec.expected === 'function') {
-            ctx.expected = spec.expected();
-        } else if (spec.expected) {
-            ctx.expected = copy(spec.expected);
-        } else {
-            ctx.expected = {};
-        }
-        ctx.okState(util.format('inital %s object: %s', spec.type.name, name));
-    });
-}
 
 // XXX use deepcopy module
 function copy(obj) {
