@@ -76,15 +76,14 @@ TestObject.prototype.initialExpectation = function initialExpectation() {
 };
 
 TestObject.prototype.okState = function okState(mess, expect) {
-    if (expect) {
-        Object.keys(expect).forEach(function(key) {
-            extend(this.expected[key], expect[key]);
-            this.assert.deepEqual(
-                this.the[key],
-                this.expected[key],
-                util.format('expected %s %s', mess, key));
-        }.bind(this));
-    }
+    if (!expect) return;
+    Object.keys(expect).forEach(function(key) {
+        extend(this.expected[key], expect[key]);
+        this.assert.deepEqual(
+            this.the[key],
+            this.expected[key],
+            util.format('expected %s %s', mess, key));
+    }.bind(this));
 };
 
 TestObject.prototype.okStep = function okStep(step, i) {
