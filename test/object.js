@@ -1,10 +1,10 @@
-module.exports.harness = testObjectHarness;
+module.exports = TestObject;
 
 var test = require('tape');
 var util = require('util');
 var extend = require('xtend/mutable');
 
-function testObjectHarness(defaultSpec, defaultNames) {
+TestObject.harness = function testObjectHarness(defaultSpec, defaultNames) {
     defaultNames = namesToSpec(defaultSpec, defaultNames);
     return function(desc, names, func) {
         var namedSpecs;
@@ -16,31 +16,27 @@ function testObjectHarness(defaultSpec, defaultNames) {
         }
         test(desc, function(assert) {
             Object.keys(namedSpecs).forEach(function(name) {
-                var ctx = assert[name] = extend(Object.create(testObjectProto), {
-                    assert: assert,
-                    name: name,
-                });
-                var spec = namedSpecs[name];
-                if (spec.create) {
-                    ctx.the = spec.create();
-                } else if (spec.args) {
-                    ctx.the = spec.type.apply(null, spec.args);
+                var test = assert[name] = new TestObject(name, namedSpecs[name], assert);
+                if (test.spec.create) {
+                    test.the = test.spec.create();
+                } else if (test.spec.args) {
+                    test.the = test.spec.type.apply(null, test.spec.args);
                 } else {
-                    ctx.the = new spec.type();
+                    test.the = new test.spec.type();
                 }
-                if (typeof spec.expected === 'function') {
-                    ctx.expected = spec.expected();
-                } else if (spec.expected) {
-                    ctx.expected = copy(spec.expected);
+                if (typeof test.spec.expected === 'function') {
+                    test.expected = test.spec.expected();
+                } else if (test.spec.expected) {
+                    test.expected = copy(test.spec.expected);
                 } else {
-                    ctx.expected = {};
+                    test.expected = {};
                 }
-                ctx.okState(util.format('inital %s object: %s', spec.type.name, name));
+                test.okState(util.format('inital %s object: %s', test.spec.type.name, name));
             });
             func(assert);
         });
     };
-}
+};
 
 function namesToSpec(defaultSpec, names) {
     var namedSpecs = {};
@@ -60,35 +56,41 @@ function namesToSpec(defaultSpec, names) {
     return namedSpecs;
 }
 
-var testObjectProto = {
-    okState: function assertState(mess, expect) {
-        if (expect) {
-            Object.keys(expect).forEach(function(key) {
-                extend(this.expected[key], expect[key]);
-                this.assert.deepEqual(
-                    this.the[key],
-                    this.expected[key],
-                    util.format('expected %s %s', mess, key));
-            }.bind(this));
-        }
-    },
-    okStep: function assertStep(step, i) {
-        var desc;
-        if (typeof step.op === 'function') {
-            step.op(this.the);
-            desc = step.op.name || ('step ' + i);
-        } else {
-            var method = step.op[0];
-            var args = step.op.slice(1);
-            desc = util.format('after %s.%s(%s)', this.name, method,
-                args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
-            this.the[method].apply(this.the, args);
-        }
-        this.okState(desc, step.expect);
-    },
-    okSteps: function assertSteps(steps) {
-        steps.forEach(this.okStep, this);
+function TestObject(name, spec, assert) {
+    this.name = name;
+    this.spec = spec;
+    this.assert = assert;
+}
+
+TestObject.prototype.okState = function okState(mess, expect) {
+    if (expect) {
+        Object.keys(expect).forEach(function(key) {
+            extend(this.expected[key], expect[key]);
+            this.assert.deepEqual(
+                this.the[key],
+                this.expected[key],
+                util.format('expected %s %s', mess, key));
+        }.bind(this));
     }
+};
+
+TestObject.prototype.okStep = function okStep(step, i) {
+    var desc;
+    if (typeof step.op === 'function') {
+        step.op(this.the);
+        desc = step.op.name || ('step ' + i);
+    } else {
+        var method = step.op[0];
+        var args = step.op.slice(1);
+        desc = util.format('after %s.%s(%s)', this.name, method,
+            args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
+        this.the[method].apply(this.the, args);
+    }
+    this.okState(desc, step.expect);
+};
+
+TestObject.prototype.okSteps = function okSteps(steps) {
+    steps.forEach(this.okStep, this);
 };
 
 // XXX use deepcopy module
