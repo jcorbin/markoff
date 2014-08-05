@@ -89,14 +89,15 @@ TestObject.prototype.okState = function okState(mess, expect) {
 TestObject.prototype.okStep = function okStep(step, i) {
     var desc;
     if (typeof step.op === 'function') {
-        step.op(this.the);
         desc = step.op.name || ('step ' + i);
+        step.op(this.the);
     } else {
         var method = step.op[0];
         var args = step.op.slice(1);
+        var meth = this.the[method];
         desc = util.format('after %s.%s(%s)', this.name, method,
             args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
-        this.the[method].apply(this.the, args);
+        meth.apply(this.the, args);
     }
     this.okState(desc, step.expect);
 };
