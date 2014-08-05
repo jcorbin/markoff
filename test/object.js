@@ -5,14 +5,14 @@ var util = require('util');
 var extend = require('xtend/mutable');
 
 TestObject.harness = function testObjectHarness(defaultSpec, defaultNames) {
-    defaultNames = namesToSpec(defaultSpec, defaultNames);
+    defaultNames = TestObject.namesToSpec(defaultSpec, defaultNames);
     return function(desc, names, func) {
         var namedSpecs;
         if (typeof names === 'function') {
             func = names;
             namedSpecs = defaultNames;
         } else {
-            namedSpecs = namesToSpec(defaultSpec, names);
+            namedSpecs = TestObject.namesToSpec(defaultSpec, names);
         }
         test(desc, function(assert) {
             Object.keys(namedSpecs).forEach(function(name) {
@@ -24,7 +24,7 @@ TestObject.harness = function testObjectHarness(defaultSpec, defaultNames) {
     };
 };
 
-function namesToSpec(defaultSpec, names) {
+TestObject.namesToSpec = function namesToSpec(defaultSpec, names) {
     var namedSpecs = {};
     if (Array.isArray(names)) {
         names.forEach(function(name) {
@@ -40,7 +40,7 @@ function namesToSpec(defaultSpec, names) {
         });
     }
     return namedSpecs;
-}
+};
 
 function TestObject(name, spec, assert) {
     this.name = name;
