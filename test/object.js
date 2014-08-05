@@ -47,11 +47,11 @@ function TestObject(name, spec, assert) {
     this.spec = spec;
     this.assert = assert;
     this.the = this.create();
-    this.expected = this.initialExpectation();
 }
 
 TestObject.prototype.init = function init() {
     var desc = util.format('inital %s object: %s', this.spec.type.name, this.name);
+    this.expected = this.initialExpectation();
     this.okState(desc);
 };
 
