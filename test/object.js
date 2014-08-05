@@ -1,23 +1,44 @@
+module.exports.harness = testObjectHarness;
+
 var test = require('tape');
 var util = require('util');
 var extend = require('xtend/mutable');
 
-// XXX use deepcopy module
-function copy(obj) {
-    if (Array.isArray(obj)) {
-        return obj.map(copy);
-    } else if (typeof obj === 'object') {
-        var dupe = {};
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-                dupe[prop] = copy(obj[prop]);
-            }
+function testObjectHarness(defaultSpec, defaultNames) {
+    defaultNames = namesToSpec(defaultSpec, defaultNames);
+    return function(desc, names, func) {
+        var namedSpecs;
+        if (typeof names === 'function') {
+            func = names;
+            namedSpecs = defaultNames;
+        } else {
+            namedSpecs = namesToSpec(defaultSpec, names);
         }
-        return dupe;
-    } else {
-        return obj;
-    }
+        test(desc, function(assert) {
+            createTestObjects(assert, namedSpecs);
+            func(assert);
+        });
+    };
 }
+
+function namesToSpec(defaultSpec, names) {
+    var namedSpecs = {};
+    if (Array.isArray(names)) {
+        names.forEach(function(name) {
+            namedSpecs[name] = defaultSpec;
+        });
+    } else {
+        Object.keys(names).forEach(function(name) {
+            if (names[name]) {
+                namedSpecs[name] = extend({}, defaultSpec, names[name]);
+            } else {
+                namedSpecs[name] = defaultSpec;
+            }
+        });
+    }
+    return namedSpecs;
+}
+
 
 var testObjectProto = {
     okState: function assertState(mess, expect) {
@@ -75,38 +96,19 @@ function createTestObjects(assert, namedSpecs) {
     });
 }
 
-createTestObjects.wrapper = function(defaultSpec, defaultNames) {
-    function namesToSpec(names) {
-        var namedSpecs = {};
-        if (Array.isArray(names)) {
-            names.forEach(function(name) {
-                namedSpecs[name] = defaultSpec;
-            });
-        } else {
-            Object.keys(names).forEach(function(name) {
-                if (names[name]) {
-                    namedSpecs[name] = extend({}, defaultSpec, names[name]);
-                } else {
-                    namedSpecs[name] = defaultSpec;
-                }
-            });
+// XXX use deepcopy module
+function copy(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(copy);
+    } else if (typeof obj === 'object') {
+        var dupe = {};
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+                dupe[prop] = copy(obj[prop]);
+            }
         }
-        return namedSpecs;
+        return dupe;
+    } else {
+        return obj;
     }
-    defaultNames = namesToSpec(defaultNames);
-    return function(desc, names, func) {
-        var namedSpecs;
-        if (typeof names === 'function') {
-            func = names;
-            namedSpecs = defaultNames;
-        } else {
-            namedSpecs = namesToSpec(names);
-        }
-        test(desc, function(assert) {
-            createTestObjects(assert, namedSpecs);
-            func(assert);
-        });
-    };
-};
-
-module.exports = createTestObjects;
+}

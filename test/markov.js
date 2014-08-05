@@ -1,7 +1,7 @@
 var Markov = require('../markov');
-var createTestObjects = require('./object');
+var testObjectHarness = require('./object').harness;
 
-var markovTest = createTestObjects.wrapper({
+var markovTest = testObjectHarness({
     type: Markov,
     expected: function() {
         var start = new Array(this.args && this.args[0] && this.args[0].stateSize || 1);
