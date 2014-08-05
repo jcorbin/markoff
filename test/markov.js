@@ -1,8 +1,17 @@
 var Markov = require('../markov');
-var testObjectHarness = require('./object').harness;
+var testObjectHarness = require('./async_object').harness;
+var series = require('continuable-series');
 
 var markovTest = testObjectHarness({
     type: Markov,
+    init: 'init',
+    async: {
+        transitions: function(done) {
+            this.getData(function(err, data) {
+                done(err, data && data.transitions);
+            });
+        }
+    },
     expected: function() {
         var start = new Array(this.args && this.args[0] && this.args[0].stateSize || 1);
         for (var i=0, n=start.length; i<n; i++) start[i] = null;
@@ -16,7 +25,7 @@ var markovTest = testObjectHarness({
 }, ['markov']);
 
 markovTest('Markov addTokens', function(assert) {
-    assert.markov.okSteps([
+    return assert.markov.okSteps([
         {
             op: ['addTokens', []]
         },
@@ -47,11 +56,10 @@ markovTest('Markov addTokens', function(assert) {
             }
         }
     ]);
-    assert.end();
 });
 
 markovTest('Markov special keywords', function(assert) {
-    assert.markov.okStep({
+    return assert.markov.okStep({
         op: ['addTokens', 'the token constructor is special'.split(' ')],
         expect: {
             transitions: {
@@ -64,36 +72,51 @@ markovTest('Markov special keywords', function(assert) {
             }
         },
     });
-    assert.end();
 });
 
-markovTest('Markov save/load', function(assert) {
-    assert.markov.okStep({
-        op: function setup(markov) {
-            markov.addTokens('a b c'.split(' '));
-            markov.addTokens('a b d'.split(' '));
-            markov.addTokens('c e g'.split(' '));
-        },
-        expect: {
-            transitions: {
-                '': [[2, 'a'], [1, 'c']],
-                a: [[2, 'b']],
-                b: [[1, 'c'], [1, 'd']],
-                c: [[1, 'e'], [1, null]],
-                d: [[1, null]],
-                e: [[1, 'g']],
-                g: [[1, null]],
+markovTest('Markov getData/fromData', function(assert) {
+    return series(
+        assert.markov.okStep({
+            op: function setup(markov, done) {
+                series(
+                    markov.addTokens.bind(markov, 'a b c'.split(' ')),
+                    markov.addTokens.bind(markov, 'a b d'.split(' ')),
+                    markov.addTokens.bind(markov, 'c e g'.split(' '))
+                )(done);
+            },
+            expect: {
+                transitions: {
+                    '': [[2, 'a'], [1, 'c']],
+                    a: [[2, 'b']],
+                    b: [[1, 'c'], [1, 'd']],
+                    c: [[1, 'e'], [1, null]],
+                    d: [[1, null]],
+                    e: [[1, 'g']],
+                    g: [[1, null]],
+                }
             }
+        }),
+        function(next) {
+            assert.markov.the.getData(function(err, data) {
+                if (err) return next(err);
+                assert.deepEqual(data, {
+                    stateSize: 1,
+                    transitions: assert.markov.expected.transitions
+                }, 'saved data matches');
+                Markov.fromData(data, function(err, copy) {
+                    if (err) return next(err);
+                    copy.getData(function(err, data) {
+                        if (err) return next(err);
+                        assert.deepEqual(data, {
+                            stateSize: 1,
+                            transitions: assert.markov.expected.transitions
+                        }, 'reloaded transitions');
+                        next();
+                    });
+                });
+            });
         }
-    });
-    var data = assert.markov.the.save();
-    assert.deepEqual(data, {
-        stateSize: 1,
-        transitions: assert.markov.expected.transitions
-    }, 'saved data matches');
-    var copy = Markov.load(data);
-    assert.deepEqual(copy.transitions, assert.markov.expected.transitions, 'loaded transitions');
-    assert.end();
+    );
 });
 
 markovTest('Markov createState', {
@@ -105,7 +128,6 @@ markovTest('Markov createState', {
         args: [{stateSize: 3}]
     }
 }, function(assert) {
-
     assert.equal(
         String(assert.markov1.the.createState('wat')),
         'wat',
@@ -159,9 +181,6 @@ markovTest('Markov createState', {
         'beep,boop,blip',
         'markov3 createState beep boops and blips'
     );
-
-
-    assert.end();
 });
 
 markovTest('Markov merge', {
@@ -169,49 +188,67 @@ markovTest('Markov merge', {
     markovb: null,
     markovc: {args: [{stateSize: 2}]}
 }, function(assert) {
-    assert.markova.okStep({
-        op: ['addTokens', ['this', 'is', 'a', 'testing', 'sentence']],
-        expect: {
-            transitions: {
-                '': [[1, 'this']],
-                this: [[1, 'is']],
-                is: [[1, 'a']],
-                a: [[1, 'testing']],
-                testing: [[1, 'sentence']],
-                sentence: [[1, null]],
+    return series(
+        assert.markova.okStep({
+            op: ['addTokens', ['this', 'is', 'a', 'testing', 'sentence']],
+            expect: {
+                transitions: {
+                    '': [[1, 'this']],
+                    this: [[1, 'is']],
+                    is: [[1, 'a']],
+                    a: [[1, 'testing']],
+                    testing: [[1, 'sentence']],
+                    sentence: [[1, null]],
+                }
             }
-        }
-    });
-    assert.markovb.okStep({
-        op: ['addTokens', ['here', 'is', 'another', 'testing', 'sentence']],
-        expect: {
-            transitions: {
-                '': [[1, 'here']],
-                here: [[1, 'is']],
-                is: [[1, 'another']],
-                another: [[1, 'testing']],
-                testing: [[1, 'sentence']],
-                sentence: [[1, null]],
+        }),
+        assert.markovb.okStep({
+            op: ['addTokens', ['here', 'is', 'another', 'testing', 'sentence']],
+            expect: {
+                transitions: {
+                    '': [[1, 'here']],
+                    here: [[1, 'is']],
+                    is: [[1, 'another']],
+                    another: [[1, 'testing']],
+                    testing: [[1, 'sentence']],
+                    sentence: [[1, null]],
+                }
             }
+        }),
+
+        assert.markova.okStep({
+            // jshint camelcase: false
+            op: function markovA_merge_markovB(markova, done) {
+                var markovb = assert.markovb.the;
+                markova.merge(markovb, done);
+            },
+            expect: {
+                transitions: {
+                    '': [[1, 'here'], [1, 'this']],
+                    this: [[1, 'is']],
+                    here: [[1, 'is']],
+                    is: [[1, 'a'], [1, 'another']],
+                    a: [[1, 'testing']],
+                    another: [[1, 'testing']],
+                    testing: [[2, 'sentence']],
+                    sentence: [[2, null]],
+                }
+            }
+            // jshint camelcase: true
+        }),
+
+        // assert.markova.the.merge.bind(assert.markova.the, assert.markovb.the),
+        // assert.markova.okState('after markova.merge(markovb)', {
+        // }),
+
+        function(next) {
+            assert.markova.the.merge(assert.markovc.the, function(err) {
+                assert.ok(err && /differing state size/.exec('' + err),
+                    'cannot merge different sized markovs');
+                next();
+            });
         }
-    });
-    assert.markova.the.merge(assert.markovb.the);
-    assert.markova.okState('after markova.merge(markovb)', {
-        transitions: {
-            '': [[1, 'here'], [1, 'this']],
-            this: [[1, 'is']],
-            here: [[1, 'is']],
-            is: [[1, 'a'], [1, 'another']],
-            a: [[1, 'testing']],
-            another: [[1, 'testing']],
-            testing: [[2, 'sentence']],
-            sentence: [[2, null]],
-        }
-    });
-    assert.throws(function() {
-        assert.markova.the.merge(assert.markovc.the);
-    }, /differing state size/, 'cannot merge different sized markovs');
-    assert.end();
+    );
 });
 
 markovTest('Build a 2-markov', {
@@ -219,7 +256,7 @@ markovTest('Build a 2-markov', {
         args: [{stateSize: 2}]
     }
 }, function(assert) {
-    assert.markov.okSteps([
+    return assert.markov.okSteps([
         {
             op: ['addTokens', 'now is the time for action'.split(' ')],
             expect: {
@@ -249,8 +286,5 @@ markovTest('Build a 2-markov', {
                 }
             }
         }
-
     ]);
-
-    assert.end();
 });
