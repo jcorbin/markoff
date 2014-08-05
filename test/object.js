@@ -17,13 +17,6 @@ TestObject.harness = function testObjectHarness(defaultSpec, defaultNames) {
         test(desc, function(assert) {
             Object.keys(namedSpecs).forEach(function(name) {
                 var test = assert[name] = new TestObject(name, namedSpecs[name], assert);
-                if (test.spec.create) {
-                    test.the = test.spec.create();
-                } else if (test.spec.args) {
-                    test.the = test.spec.type.apply(null, test.spec.args);
-                } else {
-                    test.the = new test.spec.type();
-                }
                 if (typeof test.spec.expected === 'function') {
                     test.expected = test.spec.expected();
                 } else if (test.spec.expected) {
@@ -60,7 +53,18 @@ function TestObject(name, spec, assert) {
     this.name = name;
     this.spec = spec;
     this.assert = assert;
+    this.the = this.create();
 }
+
+TestObject.prototype.create = function create() {
+    if (this.spec.create) {
+        return this.spec.create();
+    } else if (this.spec.args) {
+        return this.spec.type.apply(null, this.spec.args);
+    } else {
+        return new this.spec.type();
+    }
+};
 
 TestObject.prototype.okState = function okState(mess, expect) {
     if (expect) {
