@@ -94,25 +94,39 @@ TestObject.prototype.checkKey = function checkKey(key, got, desc) {
         util.format('expected %s %s %s', this.name, key, desc));
 };
 
-TestObject.prototype.okStep = function okStep(spec, i) {
+TestObject.prototype.step = function step(spec, i) {
     var op = spec.op;
-    var desc;
+    var desc, func;
     if (typeof op === 'function') {
         desc = op.name || ('step ' + i);
-        op(this.the);
+        func = op.bind(spec, this.the);
     } else {
         var method = op[0], args = op.slice(1);
         desc = util.format('after .%s(%s)', method,
             args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
-        var meth = this.the[method];
-        meth.apply(this.the, args);
+        func = boundMethod(this.the, method, args);
     }
-    this.okState(desc, spec.expect);
+    return {
+        desc: desc,
+        func: func
+    };
+};
+
+TestObject.prototype.okStep = function okStep(spec, i) {
+    var step = this.step(spec, i);
+    step.func();
+    this.okState(step.desc, spec.expect);
 };
 
 TestObject.prototype.okSteps = function okSteps(steps) {
     steps.forEach(this.okStep, this);
 };
+
+function boundMethod(obj, name, args) {
+    var meth = obj[name];
+    args.unshift(obj);
+    return meth.bind.apply(meth, args);
+}
 
 // XXX use deepcopy module
 function copy(obj) {
