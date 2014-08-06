@@ -5,6 +5,7 @@ function Markov(options) {
     if (!(this instanceof Markov)) return new Markov(options);
     options = options || {};
     this.db = options.db || MemDB({
+        keyEncoding: 'json',
         valueEncoding: 'json'
     });
     if (options.key) this.key = options.key;
@@ -30,11 +31,10 @@ function Markov(options) {
         },
         function(next) {
             self.start = self.createState();
-            var startKey = 'transitions/' + self.start;
-            self.db.get(startKey, function(err, val) {
+            self.db.get(['transitions', self.start], function(err, val) {
                 if (err && !err.notFound) return next(err);
                 if (val !== undefined) return next();
-                self.db.put(startKey, [], next);
+                self.db.put(['transitions', self.start], [], next);
             });
         },
         function(next) {
@@ -79,9 +79,8 @@ Markov.prototype.getData = withReady(function getData(callback) {
     };
     var finished = false;
     this.db.createReadStream().on('data', function(pair) {
-        if (pair.key.indexOf('transitions/') === 0) {
-            var key = pair.key.slice(12);
-            data.transitions[key] = pair.value;
+        if (pair.key[0] === 'transitions') {
+            data.transitions[pair.key[1]] = pair.value;
         }
     }).on('error', finish).on('end', finish);
     function finish(err) {
@@ -114,7 +113,7 @@ Markov.prototype.setData = withReady(function setData(data, callback) {
         bat.put('stateSize', data.stateSize);
         Object.keys(data.transitions).forEach(function(key) {
             var wTokens = data.transitions[key];
-            bat.put('transitions/' + key, wTokens);
+            bat.put(['transitions', key], wTokens);
         });
         bat.write(function(err) {
             if (!err) self.stateSize = data.stateSize;
@@ -127,7 +126,7 @@ Markov.prototype.clearData = withReady(function clearData(callback) {
     var finished = false;
     var bat = this.db.batch();
     this.db.createKeyStream().on('data', function(key) {
-        if (key.indexOf('transitions/') === 0 ||
+        if (key[0] === 'transitions' ||
             key === 'stateSize') {
             bat.del(key);
         }
@@ -147,29 +146,27 @@ Markov.prototype.addTransition = withReady(function addTransition(state, token, 
 
 Markov.prototype.addWeightedTransition = withReady(function addWeightedTransition(state, w, token, done) {
     var self = this;
-    var stateKey = 'transitions/' + state;
-    this.db.get(stateKey, function(err, wTokens) {
+    this.db.get(['transitions', state], function(err, wTokens) {
         if (err && !err.notFound) return done(err);
         if (wTokens === undefined) {
             wTokens = [[w, token]];
         } else {
             self.inSort(wTokens, w, token);
         }
-        self.db.put(stateKey, wTokens, done);
+        self.db.put(['transitions', state], wTokens, done);
     });
 });
 
 Markov.prototype.addWeightedTransitions = withReady(function addWeightedTransitions(state, newWTokens, done) {
     var self = this;
-    var stateKey = 'transitions/' + state;
-    this.db.get(stateKey, function(err, wTokens) {
+    this.db.get(['transitions', state], function(err, wTokens) {
         if (err && !err.notFound) return done(err);
         if (wTokens === undefined) {
             wTokens = newWTokens;
         } else {
             self.inSortMerge(wTokens, newWTokens);
         }
-        self.db.put(stateKey, wTokens, done);
+        self.db.put(['transitions', state], wTokens, done);
     });
 });
 
@@ -240,8 +237,8 @@ Markov.prototype.merge = withReady(function merge(other, callback) {
     // TODO: use a write/transform stream maybe batch
     var Q = [], adding = false, finished = false, ended = false;
     other.db.createReadStream().on('data', function(pair) {
-        if (pair.key.indexOf('transitions/') === 0) {
-            add(pair.key.slice(12), pair.value);
+        if (pair.key[0] === 'transitions') {
+            add(pair.key[1], pair.value);
         }
     }).on('error', finish).on('end', function() {
         ended = true;
@@ -269,8 +266,7 @@ Markov.prototype.merge = withReady(function merge(other, callback) {
 
 Markov.prototype.choose = withReady(function choose(state, rand, callback) {
     rand = rand || Math.random;
-    var stateKey = 'transitions/' + state;
-    this.db.get(stateKey, function(err, wTokens) {
+    this.db.get(['transitions', state], function(err, wTokens) {
         var bestK = null, bestToken = null;
         if (!err && wTokens) {
             bestToken = wTokens[0][1];
