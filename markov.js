@@ -1,5 +1,6 @@
 var MemDB = require('memdb');
 var once = require('./lib/continuable-once');
+var series = require('continuable-series');
 
 function Markov(options) {
     if (!(this instanceof Markov)) return new Markov(options);
@@ -31,13 +32,6 @@ function Markov(options) {
         },
         function(next) {
             self.start = self.createState();
-            self.db.get(['transitions', self.start], function(err, val) {
-                if (err && !err.notFound) return next(err);
-                if (val !== undefined) return next();
-                self.db.put(['transitions', self.start], [], next);
-            });
-        },
-        function(next) {
             self.ready = true;
             next();
         }
@@ -45,10 +39,6 @@ function Markov(options) {
 }
 
 Markov.prototype.ready = false;
-
-Markov.prototype.tokenRel = function tokenRel(a, b) {
-    return ('' + a) < ('' + b);
-};
 
 Markov.prototype.copyWToken = function(wToken) {
     return [wToken[0], this.copyToken(wToken[1])];
@@ -80,7 +70,15 @@ Markov.prototype.getData = withReady(function getData(callback) {
     var finished = false;
     this.db.createReadStream().on('data', function(pair) {
         if (pair.key[0] === 'transitions') {
-            data.transitions[pair.key[1]] = pair.value;
+            var state = pair.key[1];
+            var token = pair.key[2];
+            var w = pair.value;
+            var wToken = [w, token];
+            if (data.transitions.hasOwnProperty(state)) {
+                data.transitions[state].push(wToken);
+            } else {
+                data.transitions[state] = [wToken];
+            }
         }
     }).on('error', finish).on('end', finish);
     function finish(err) {
@@ -113,7 +111,10 @@ Markov.prototype.setData = withReady(function setData(data, callback) {
         bat.put('stateSize', data.stateSize);
         Object.keys(data.transitions).forEach(function(key) {
             var wTokens = data.transitions[key];
-            bat.put(['transitions', key], wTokens);
+            wTokens.forEach(function(wToken) {
+                var w = wToken[0], token = wToken[1];
+                bat.put(['transitions', key, token], w);
+            });
         });
         bat.write(function(err) {
             if (!err) self.stateSize = data.stateSize;
@@ -146,62 +147,24 @@ Markov.prototype.addTransition = withReady(function addTransition(state, token, 
 
 Markov.prototype.addWeightedTransition = withReady(function addWeightedTransition(state, w, token, done) {
     var self = this;
-    this.db.get(['transitions', state], function(err, wTokens) {
+    this.db.get(['transitions', state, token], function(err, val) {
         if (err && !err.notFound) return done(err);
-        if (wTokens === undefined) {
-            wTokens = [[w, token]];
+        if (val === undefined) {
+            val = w;
         } else {
-            self.inSort(wTokens, w, token);
+            val += w;
         }
-        self.db.put(['transitions', state], wTokens, done);
+        self.db.put(['transitions', state, token], val, done);
     });
 });
 
 Markov.prototype.addWeightedTransitions = withReady(function addWeightedTransitions(state, newWTokens, done) {
     var self = this;
-    this.db.get(['transitions', state], function(err, wTokens) {
-        if (err && !err.notFound) return done(err);
-        if (wTokens === undefined) {
-            wTokens = newWTokens;
-        } else {
-            self.inSortMerge(wTokens, newWTokens);
-        }
-        self.db.put(['transitions', state], wTokens, done);
-    });
+    series(newWTokens.map(function(wToken) {
+        var w = wToken[0], token = wToken[1];
+        self.addWeightedTransition.bind(self, state, w, token);
+    }))(done);
 });
-
-Markov.prototype.inSort = function inSort(wTokens, w, token) {
-    var lo = 0, hi = wTokens.length-1;
-    while (lo <= hi) {
-        var q = Math.floor(lo / 2 + hi / 2);
-        if      (this.tokenRel(token, wTokens[q][1])) hi = q-1;
-        else if (this.tokenRel(wTokens[q][1], token)) lo = q+1;
-        else {
-            wTokens[q][0] += w;
-            return wTokens;
-        }
-    }
-    wTokens.splice(lo, 0, [w, this.copyToken(token)]);
-    return wTokens;
-};
-
-Markov.prototype.inSortMerge = function inSortMerge(wTokens, otherWTokens) {
-    var i = 0, n = wTokens.length;
-    var j = 0, m = otherWTokens.length;
-    while (i < n && j < m) {
-        if (this.tokenRel(wTokens[i][1], otherWTokens[j][1])) {
-            i++;
-        } else if (this.tokenRel(otherWTokens[j][1], wTokens[i][1])) {
-            wTokens.splice(i++, 0, this.copyWToken(otherWTokens[j++]));
-            n++;
-        } else {
-            wTokens[i++][0] += otherWTokens[j++][0];
-        }
-    }
-    while (j < m) {
-        wTokens.push(this.copyWToken(otherWTokens[j++]));
-    }
-};
 
 Markov.prototype.addTokens = withReady(function addTokens(tokens, callback) {
     if (!callback) throw new Error('fuuuu');
@@ -238,18 +201,18 @@ Markov.prototype.merge = withReady(function merge(other, callback) {
     var Q = [], adding = false, finished = false, ended = false;
     other.db.createReadStream().on('data', function(pair) {
         if (pair.key[0] === 'transitions') {
-            add(pair.key[1], pair.value);
+            add(pair.key[1], pair.key[2], pair.value);
         }
     }).on('error', finish).on('end', function() {
         ended = true;
         if (!adding && !Q.length) finish();
     });
-    function add(state, wTokens) {
+    function add(state, token, w) {
         if (adding) {
-            Q.push([state, wTokens]);
+            Q.push([state, token, w]);
         } else {
             adding = true;
-            self.addWeightedTransitions(state, wTokens, function(err) {
+            self.addWeightedTransition(state, w, token, function(err) {
                 adding = false;
                 if (err) return finish(err);
                 if (Q.length) add.apply(null, Q.shift());
@@ -266,23 +229,27 @@ Markov.prototype.merge = withReady(function merge(other, callback) {
 
 Markov.prototype.choose = withReady(function choose(state, rand, callback) {
     rand = rand || Math.random;
-    this.db.get(['transitions', state], function(err, wTokens) {
-        var bestK = null, bestToken = null;
-        if (!err && wTokens) {
-            bestToken = wTokens[0][1];
-            bestK = Math.pow(rand(), 1/wTokens[0][0]);
-            for (var i=1, n=wTokens.length; i<n; i++) {
-                var wToken = wTokens[i];
-                var w = wToken[0], token = wToken[1];
-                var k = Math.pow(rand(), 1/w);
-                if (k > bestK) {
-                    bestK = k;
-                    bestToken = token;
-                }
-            }
+    var finished = false;
+    var bestK = null, bestToken = null;
+    var stream = this.db.createReadStream().on('data', {
+        gte: ['transitions', state]
+    }, function(pair) {
+        if (pair.key[0] !== state) return stream.close();
+        var token = pair.key[1];
+        var w = pair.value;
+        var k = Math.pow(rand(), 1/w);
+        if (bestK === null || k > bestK) {
+            bestK = k;
+            bestToken = token;
         }
-        callback(err, bestToken);
+    }).on('error', finish).on('end', function() {
+        finish(null, bestToken);
     });
+    function finish() {
+        if (finished) return;
+        finished = true;
+        callback.apply(this, arguments);
+    }
 });
 
 Markov.prototype.chain = withReady(function chain(maxLength, state, rand, callback) {
