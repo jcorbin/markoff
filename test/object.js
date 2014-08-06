@@ -91,7 +91,7 @@ TestObject.prototype.expectKey = function expectKey(expect, key, got, desc) {
 TestObject.prototype.checkKey = function checkKey(key, got, desc) {
     this.assert.deepEqual(
         got, this.expected[key],
-        util.format('expected %s %s', desc, key));
+        util.format('expected %s %s %s', this.name, key, desc));
 };
 
 TestObject.prototype.okStep = function okStep(step, i) {
@@ -103,7 +103,7 @@ TestObject.prototype.okStep = function okStep(step, i) {
         var method = step.op[0];
         var args = step.op.slice(1);
         var meth = this.the[method];
-        desc = util.format('after %s.%s(%s)', this.name, method,
+        desc = util.format('after .%s(%s)', method,
             args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
         meth.apply(this.the, args);
     }
