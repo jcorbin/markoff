@@ -1,3 +1,22 @@
+2014-08-05 - 2.2.1 (7f81a5b)
+7f81a5b (HEAD, master) TestObject: factor apart okStep
+dfa1281 TestObject: trivial refactor in okStep
+9df0837 TestObject: tweak descriptions
+26c40ed TestObject: factor out .{expect,check}Key
+3b3fc53 TestObject: trivial refactor
+35f2540 TestObject: carry namesToSpec
+a507514 TestObject: trivial refactor
+e639cdc TestObject: trivial refactor
+b00c32c TestObject: delay expectation initialization
+d9bf84e TestObject: factor out .init()
+02e62de TestObject: factor out .initialExpectation()
+6a2679c TestObject: factor out .create()
+f2f8340 test/object: factor out TestObject
+cc4b915 test/object: subsume createTestObjects
+0101d62 test/object: refactor module structure
+e2f448d (tag: v2.2.0, origin/master) 2.2.0
+
+
 2014-08-05 - 2.2.0 (7290dd7)
 7290dd7 (HEAD, master) Subsume mergeTransitions
 8cc1f95 Copy inserted tokens
