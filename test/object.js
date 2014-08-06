@@ -94,20 +94,20 @@ TestObject.prototype.checkKey = function checkKey(key, got, desc) {
         util.format('expected %s %s %s', this.name, key, desc));
 };
 
-TestObject.prototype.okStep = function okStep(step, i) {
+TestObject.prototype.okStep = function okStep(spec, i) {
+    var op = spec.op;
     var desc;
-    if (typeof step.op === 'function') {
-        desc = step.op.name || ('step ' + i);
-        step.op(this.the);
+    if (typeof op === 'function') {
+        desc = op.name || ('step ' + i);
+        op(this.the);
     } else {
-        var method = step.op[0];
-        var args = step.op.slice(1);
-        var meth = this.the[method];
+        var method = op[0], args = op.slice(1);
         desc = util.format('after .%s(%s)', method,
             args.map(function(arg) {return JSON.stringify(arg);}).join(', '));
+        var meth = this.the[method];
         meth.apply(this.the, args);
     }
-    this.okState(desc, step.expect);
+    this.okState(desc, spec.expect);
 };
 
 TestObject.prototype.okSteps = function okSteps(steps) {
