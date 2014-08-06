@@ -12,7 +12,8 @@
     "email": "joshua@wunjo.org"
   },
   "dependencies": {
-    "continuable-series": "^1.2.0"
+    "continuable-series": "^1.2.0",
+    "next-tick": "^0.2.2"
   },
   "devDependencies": {
     "tape": "^2.12.3",
