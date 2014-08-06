@@ -1,3 +1,15 @@
+2014-08-05 - 2.1.1 (61a7455)
+61a7455 (HEAD, master) Move tokenRel declaration
+7d7d95b Refactor choose
+29278a3 Refactor chain
+7e821bc Refactor addTokens
+1646cb4 Factor out addWeightedTransitions
+843255c Trivial renames
+5b5e26f Drop obsolete TODOs
+ce5dc18 Update jshintrc
+a4177f4 (tag: v2.1.0, origin/master) 2.1.0
+
+
 2014-08-03 - 2.1.0 (42b3d6c)
 42b3d6c (HEAD, master) Add key support
 f6fc191 (tag: v2.0.1, origin/master) 2.0.1
