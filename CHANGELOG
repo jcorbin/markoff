@@ -1,3 +1,11 @@
+2014-08-05 - 2.2.0 (7290dd7)
+7290dd7 (HEAD, master) Subsume mergeTransitions
+8cc1f95 Copy inserted tokens
+a3ea57a Add/use inSortMerge
+bfa63a0 Make tokenRel anti-reflexive
+6d91a62 (tag: v2.1.1, origin/master) 2.1.1
+
+
 2014-08-05 - 2.1.1 (61a7455)
 61a7455 (HEAD, master) Move tokenRel declaration
 7d7d95b Refactor choose
